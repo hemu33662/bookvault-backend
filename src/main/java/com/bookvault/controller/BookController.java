@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.BufferedInputStream;
 
 @RestController
-@CrossOrigin(origins = "*") // Allows the Angular frontend to fetch .vault files for decryption
 public class BookController {
 
     @Autowired
@@ -58,6 +57,11 @@ public class BookController {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // --- Public Endpoints ---
+
+    @GetMapping("/api/public/ping")
+    public ResponseEntity<String> ping() {
+        return ResponseEntity.ok("pong");
+    }
 
     @GetMapping("/api/public/books")
     public ResponseEntity<List<BookDTO>> getAllPublishedBooks() {

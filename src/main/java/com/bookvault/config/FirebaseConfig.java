@@ -15,12 +15,17 @@ public class FirebaseConfig {
         try {
             GoogleCredentials credentials;
             
-            // Step 1: Try to load from Render Environment Variable (Production)
+            // Step 1: Try to load JSON string directly from Environment Variable
+            String envJson = System.getenv("GOOGLE_CREDENTIALS_JSON");
             String envPath = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
-            if (envPath != null && !envPath.isEmpty()) {
+            
+            if (envJson != null && !envJson.isEmpty()) {
+                credentials = GoogleCredentials.fromStream(new java.io.ByteArrayInputStream(envJson.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+            } else if (envPath != null && !envPath.isEmpty()) {
+                // Step 2: Try to load from Render Environment Variable path (Production)
                 credentials = GoogleCredentials.getApplicationDefault();
             } else {
-                // Step 2: Fall back to local src/main/resources (Development)
+                // Step 3: Fall back to local src/main/resources (Development)
                 java.io.InputStream serviceAccount = getClass().getClassLoader().getResourceAsStream("serviceAccountKey.json");
                 if (serviceAccount == null) return;
                 credentials = GoogleCredentials.fromStream(serviceAccount);

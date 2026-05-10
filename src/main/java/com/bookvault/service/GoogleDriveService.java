@@ -31,21 +31,33 @@ public class GoogleDriveService {
 
     @PostConstruct
     public void init() throws IOException, GeneralSecurityException {
-        if (credentialsResource.exists()) {
-            try (InputStream is = credentialsResource.getInputStream()) {
-                GoogleCredentials credentials = GoogleCredentials.fromStream(is)
-                        .createScoped(Collections.singleton("https://www.googleapis.com/auth/drive"));
+        GoogleCredentials credentials = null;
+        String envJson = System.getenv("GOOGLE_CREDENTIALS_JSON");
+        String envPath = System.getenv("GOOGLE_APPLICATION_CREDENTIALS");
 
-                this.driveService = new Drive.Builder(
-                        GoogleNetHttpTransport.newTrustedTransport(),
-                        GsonFactory.getDefaultInstance(),
-                        new HttpCredentialsAdapter(credentials))
-                        .setApplicationName("BookVault")
-                        .build();
-                System.out.println("Google Drive Service initialized successfully.");
+        if (envJson != null && !envJson.isEmpty()) {
+            credentials = GoogleCredentials.fromStream(new java.io.ByteArrayInputStream(envJson.getBytes(StandardCharsets.UTF_8)))
+                    .createScoped(Collections.singleton("https://www.googleapis.com/auth/drive"));
+        } else if (envPath != null && !envPath.isEmpty()) {
+            credentials = GoogleCredentials.getApplicationDefault()
+                    .createScoped(Collections.singleton("https://www.googleapis.com/auth/drive"));
+        } else if (credentialsResource.exists()) {
+            try (InputStream is = credentialsResource.getInputStream()) {
+                credentials = GoogleCredentials.fromStream(is)
+                        .createScoped(Collections.singleton("https://www.googleapis.com/auth/drive"));
             }
+        }
+
+        if (credentials != null) {
+            this.driveService = new Drive.Builder(
+                    GoogleNetHttpTransport.newTrustedTransport(),
+                    GsonFactory.getDefaultInstance(),
+                    new HttpCredentialsAdapter(credentials))
+                    .setApplicationName("BookVault")
+                    .build();
+            System.out.println("Google Drive Service initialized successfully.");
         } else {
-            System.err.println("Google Drive credentials not found at classpath:serviceAccountKey.json");
+            System.err.println("Google Drive credentials not found via GOOGLE_APPLICATION_CREDENTIALS or classpath:serviceAccountKey.json");
         }
     }
 

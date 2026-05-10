@@ -30,7 +30,6 @@ import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/api/vault")
-@CrossOrigin(origins = "*")
 public class VaultController {
 
     @Autowired
